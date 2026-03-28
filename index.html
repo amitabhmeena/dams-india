@@ -155,6 +155,7 @@ input[type="text"], select {
     <label><input type="checkbox" id="riverBasinsChk"> River Basins</label><br>
     <label><input type="checkbox" id="damChk" checked> Dams</label><br>
     <label><input type="checkbox" id="hoChk"> HO Sites</label>
+	<label><input type="checkbox" id="inundationChk"> Inundation Map</label>
 
 
   </div>
@@ -173,7 +174,8 @@ require([
   "esri/views/MapView",
   "esri/layers/MapImageLayer",
   "esri/layers/FeatureLayer",
-  "esri/Graphic",
+  "esri/layers/GeoTIFFLayer",
+  "esri/Graphic",  
   "esri/geometry/Point",
   "esri/widgets/ScaleBar",
   "esri/widgets/Locate",
@@ -181,7 +183,7 @@ require([
   "esri/config"
 ], function (
   Map, MapView,
-  MapImageLayer, FeatureLayer,
+  MapImageLayer, FeatureLayer, GeoTIFFLayer,
   Graphic, Point, ScaleBar, Locate, locator, esriConfig
 ) {
   esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurKdAwSbr3tap2eaxJY7Eqwza-FGiC6bjE-hhpBRvGJ2wDnbvdmPI7YFWeiNXNv6su9s4lbgk8V_8AF7vUtQTkgI-5EA5YPbRJgTLnU8DP1qJCTztP8XktMd0xQu99qfTENAzYFXEPc1D-dx7joWwLUqLNFt7ApWKCXPbopJ8oAlWK3wspWKMg0OiMyOmtpo6N0u2d3K5vNHQ_uobPl467zg.AT1_oPY0JXcr";
@@ -245,6 +247,15 @@ require([
     basemap: "satellite",
     layers: [stateLayer, districtLayer, riverLayer]
   });
+  // 🌊 Inundation GeoTIFF layer
+ 
+ let inundationLayer = new GeoTIFFLayer({
+  url: "MH09HH1660_Vulnerability.tif", // change path if needed
+  visible: false,
+  opacity: 0.6
+});
+
+map.add(inundationLayer);
 
   const view = new MapView({
     container: "viewDiv",
@@ -525,6 +536,7 @@ view.ui.add(scaleBar, {
   districtChk.onchange = () => districtLayer.visible = districtChk.checked;
   riverChk.onchange = () => riverLayer.visible = riverChk.checked;
   riverBasinsChk.onchange = () => riverBasinsLayer.visible = riverBasinsChk.checked;
+  inundationChk.onchange = () => inundationLayer.visible = inundationChk.checked;
 
   damChk.onchange = () => {
     if (damFeatureLayer) damFeatureLayer.visible = damChk.checked;
@@ -915,6 +927,21 @@ if (ownerMatches.length && !isDamMatch) {
     activeIndex = -1;
 
     view.popup.close();
+	
+	// 🔄 Load dam-specific inundation map
+   const damId = feature.attributes.Dam_ID || feature.attributes.Name;
+
+  if (inundationLayer) {
+  map.remove(inundationLayer);
+ }
+
+ inundationLayer = new GeoTIFFLayer({
+  url: `inundation/${damId}_Vulnerability.tif`,
+  opacity: 0.6,
+  visible: true
+});
+
+map.add(inundationLayer);
     view.goTo({ target: feature.geometry, zoom: 11 }, { duration: 2000 })
       .then(() => {
         view.popup.open({
