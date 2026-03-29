@@ -249,13 +249,13 @@ require([
   });
   // 🌊 Inundation GeoTIFF layer
  
- // let inundationLayer = new GeoTIFFLayer({
-  // url: "MH09HH1660_Vulnerability.tif", // change path if needed
-  // visible: false,
-  // opacity: 0.6
-// });
+ let inundationLayer = new GeoTIFFLayer({
+  url: "MH09HH1660_Vulnerability.tif", // change path if needed
+  visible: false,
+  opacity: 0.6
+});
 
-// map.add(inundationLayer);
+map.add(inundationLayer);
 
   const view = new MapView({
     container: "viewDiv",
